@@ -1,97 +1,38 @@
 <!DOCTYPE html>
-<html lang="ar">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>OzLiveness Selfie Check</title>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <title>MyApp</title>
+    <script src="https://web-sdk.cdn.prod.ozforensics.com/blsinternational/plugin_liveness.php"></script>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/5.0.0-alpha1/css/bootstrap.min.css">
     <style>
-        .custom-button {
-            padding: 10px 20px;
-            font-size: 16px;
-            color: #fff;
-            background-color: #007bff;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-            display: inline-flex;
-            align-items: center;
-        }
-
-        .custom-button:disabled {
-            background-color: #cccccc;
-            cursor: not-allowed;
-        }
-
-        .custom-button-icon {
-            margin-right: 5px;
-        }
+      #_btnSelfie {
+        background-color: #ff7675;
+        border: none;
+        color: white;
+        padding: 15px 32px;
+        text-align: center;
+        text-decoration: none;
+        display: inline-block;
+        font-size: 16px;
+        margin: 4px 2px;
+        transition-duration: 0.4s;
+        cursor: pointer;
+        border-radius: 25px;
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+      }
+      
+      #_btnSelfie:hover {
+        background-color: #ff6b6b;
+      }
     </style>
-</head>
-<body>
-    <button id="startLivenessCheck" class="custom-button">بدء التحقق من السيلفي</button>
-
-    <script src="https://web-sdk.spain.prod.ozforensics.com/blsinternational/plugin_liveness.php"></script>
-    <script>
-        document.getElementById('startLivenessCheck').addEventListener('click', function() {
-            // طلب تصريح الوصول إلى الكاميرا
-            navigator.mediaDevices.getUserMedia({ video: true })
-                .then(function(stream) {
-                    // إذا تم الحصول على التصريح، تابع عملية فتح OzLiveness
-                    initializeLiveness();
-                })
-                .catch(function(err) {
-                    alert("لا يمكن الوصول إلى الكاميرا. الرجاء تمكين الوصول في إعدادات المتصفح.");
-                });
-        });
-
-        function initializeLiveness() {
-            // مطالبة المستخدم بإدخال الكودين (user_id و transaction_id) مع فصل بينهما بفاصلة
-            var codes = prompt("الرجاء إدخال الكودين (user_id و transaction_id) مفصولين بفاصلة:");
-            if (!codes) {
-                alert("يجب إدخال الكودين للمواصلة.");
-                return;
-            }
-
-            // تقسيم الكودين إلى user_id و transaction_id
-            var codesArray = codes.split(",");
-            if (codesArray.length !== 2) {
-                alert("صيغة الكودات غير صحيحة. تأكد من الفصل بفاصلة فقط.");
-                return;
-            }
-
-            var user_id = codesArray[0].trim();
-            var transaction_id = codesArray[1].trim();
-
-            // فتح OzLiveness للتحقق
-            startLivenessCheck(user_id, transaction_id);
-        }
-
-        function startLivenessCheck(user_id, transaction_id) {
-            OzLiveness.open({
-                lang: 'ar',
-                meta: {
-                    'user_id': user_id,
-                    'transaction_id': transaction_id
-                },
-                overlay_options: false,
-                action: [
-                    'video_selfie_blank'
-                ],
-                on_complete: function (result) {
-                    if (result.status === 'success') {
-                        alert("الصورة جيدة وتم قبولها.");
-                        // هنا يمكنك إضافة كود لإرسال البيانات إذا لزم الأمر
-                    } else {
-                        alert("الصورة غير صالحة. الرجاء المحاولة مرة أخرى.");
-                        setTimeout(function() {
-                            alert("سوف نعيد المحاولة الآن...");
-                            startLivenessCheck(user_id, transaction_id);
-                        }, 3000);
-                    }
-                }
-            });
-        }
-    </script>
-</body>
+  </head>
+  <body>
+    <button class="btn btn-lg d-flex flex-column align-items-center px-5 mx-auto my-5" id="_btnSelfie">
+      <i class="bi bi-camera-reels"></i> FORBES Selfie
+    </button>
+    <img src="https://i.postimg.cc/mrqr3RNt/Whats-App-Image-2024-07-10-16-26-23-f6c9fd18.jpg" alt="Logo" class="mx-auto d-block" style="width: 200px; height: auto;">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="js/index.js"></script>
+  </body>
 </html>
-
