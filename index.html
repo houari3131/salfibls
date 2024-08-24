@@ -1,12 +1,90 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>My Webpage</title>
-</head>
-<body>
-    <h1>مرحبًا بك في موقعي!</h1>
-    <p>هذه صفحة HTML بسيطة.</p>
-</body>
-</html>
+<!-- استدعاء مكتبة ليفنس -->
+<script src="https://web-sdk.spain.prod.ozforensics.com/blsinternational/plugin_liveness.php"></script>
+
+<style>
+    .ozliveness_logo {
+        display: none !important;
+    }
+
+    .ozliveness_version {
+        display: none !important;
+    }
+
+    /* تنسيق الزر */
+    #startLivenessBtn {
+        display: inline-block;
+        padding: 10px 20px;
+        font-size: 16px;
+        color: #fff;
+        background-color: #007bff;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+    }
+
+    #startLivenessBtn:disabled {
+        background-color: #cccccc;
+        cursor: not-allowed;
+    }
+</style>
+
+<script>
+    // التحقق من وجود صلاحيات الكاميرا
+    async function requestCameraAccess() {
+        try {
+            // طلب إذن الوصول إلى الكاميرا
+            await navigator.mediaDevices.getUserMedia({ video: true });
+            // إذا تم منح الإذن، ابدأ عملية التحقق من السيلفي
+            document.getElementById('startLivenessBtn').disabled = false;
+        } catch (error) {
+            alert("لم يتم منح إذن الوصول إلى الكاميرا. الرجاء تمكين الوصول للمحاولة مرة أخرى.");
+        }
+    }
+
+    // بدء عملية التحقق من السيلفي
+    function startLivenessCheck() {
+        const inputValues = prompt("الرجاء إدخال القيمتين (user_id و transaction_id) مفصولتين بفاصلة:");
+        if (inputValues) {
+            const [userId, transactionId] = inputValues.split(',').map(v => v.trim());
+            if (userId && transactionId) {
+                OzLiveness.open({
+                    lang: 'en',
+                    meta: {
+                        'user_id': userId,
+                        'transaction_id': transactionId
+                    },
+                    overlay_options: false,
+                    action: ['video_selfie_blank'],
+                    on_complete: function (result) {
+                        if (result.status === 'success') {
+                            const eventId = result.event_session_id;
+                            alert("الصورة جيدة وتم قبولها. الكود هو: " + eventId);
+                            // إضافة أزرار النسخ بجانب الكود
+                            const copyBtn = document.createElement("button");
+                            copyBtn.textContent = "نسخ الكود";
+                            copyBtn.onclick = function() {
+                                navigator.clipboard.writeText(eventId).then(() => {
+                                    alert("تم نسخ الكود بنجاح.");
+                                });
+                            };
+                            document.body.appendChild(copyBtn);
+                        } else {
+                            alert("الصورة غير صالحة. الرجاء المحاولة مرة أخرى.");
+                            setTimeout(startLivenessCheck, 3000); // إعادة المحاولة بعد 3 ثوانٍ
+                        }
+                    }
+                });
+            } else {
+                alert("الرجاء إدخال القيمتين بشكل صحيح.");
+            }
+        }
+    }
+
+    // استدعاء عملية طلب الإذن عند تحميل الصفحة
+    window.addEventListener('load', function () {
+        requestCameraAccess();
+    });
+</script>
+
+<!-- زر بدء التحقق -->
+<button id="startLivenessBtn" onclick="startLivenessCheck()" disabled>بدء التحقق من السيلفي</button>
