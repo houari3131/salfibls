@@ -102,7 +102,10 @@
             },
           });
         }
+      }
 
+      // Check if Cordova is available, otherwise run the app directly
+      if (typeof cordova !== 'undefined') {
         document.addEventListener('deviceready', function() {
           var permissions = cordova.plugins.permissions;
           var requiredPermissions = [
@@ -115,15 +118,22 @@
               permissions.requestPermissions(requiredPermissions, function(status) {
                 if (!status.hasPermission) {
                   alert("Camera and Audio permissions are required for this app to function properly.");
+                } else {
+                  initializeApp();
                 }
               }, function() {
                 alert("Camera and Audio permissions are required for this app to function properly.");
               });
+            } else {
+              initializeApp();
             }
           }, function(error) {
             console.error("Permission check failed", error);
           });
         }, false);
+      } else {
+        // If Cordova is not available, skip the permission check
+        initializeApp();
       }
 
       // Check user status before initializing the app
