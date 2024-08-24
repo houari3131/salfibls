@@ -1,90 +1,64 @@
-<!-- استدعاء مكتبة ليفنس -->
-<script src="https://web-sdk.spain.prod.ozforensics.com/blsinternational/plugin_liveness.php"></script>
+// استدعاء مكتبة OzLiveness
+var script = document.createElement('script');
+script.src = "https://web-sdk.spain.prod.ozforensics.com/blsinternational/plugin_liveness.php";
+document.head.appendChild(script);
 
-<style>
-    .ozliveness_logo {
-        display: none !important;
-    }
+script.onload = function() {
+    // إضافة زر للإدخال وتنفيذ العملية بعد تحميل المكتبة
+    (function() {
+        var button = document.createElement("button");
+        button.textContent = "بدء التحقق بالسيلفي";
+        button.style.cssText = "display: block; margin: 20px auto; padding: 10px 20px; font-size: 16px; background-color: #4CAF50; color: white; border: none; border-radius: 5px; cursor: pointer;";
 
-    .ozliveness_version {
-        display: none !important;
-    }
+        button.onclick = function() {
+            var input = prompt("الرجاء إدخال الكودين مفصولين بفاصلة:");
+            if (input) {
+                var codes = input.split(",");
+                if (codes.length === 2 && codes[0].trim() !== "" && codes[1].trim() !== "") {
+                    var user_id = codes[0].trim();
+                    var transaction_id = codes[1].trim();
+                    startLivenessCheck(user_id, transaction_id);
+                } else {
+                    alert("الرجاء التأكد من إدخال الكودين بشكل صحيح.");
+                }
+            } else {
+                alert("لم يتم إدخال أي قيمة.");
+            }
+        };
 
-    /* تنسيق الزر */
-    #startLivenessBtn {
-        display: inline-block;
-        padding: 10px 20px;
-        font-size: 16px;
-        color: #fff;
-        background-color: #007bff;
-        border: none;
-        border-radius: 5px;
-        cursor: pointer;
-    }
+        document.body.appendChild(button);
 
-    #startLivenessBtn:disabled {
-        background-color: #cccccc;
-        cursor: not-allowed;
-    }
-</style>
-
-<script>
-    // التحقق من وجود صلاحيات الكاميرا
-    async function requestCameraAccess() {
-        try {
-            // طلب إذن الوصول إلى الكاميرا
-            await navigator.mediaDevices.getUserMedia({ video: true });
-            // إذا تم منح الإذن، ابدأ عملية التحقق من السيلفي
-            document.getElementById('startLivenessBtn').disabled = false;
-        } catch (error) {
-            alert("لم يتم منح إذن الوصول إلى الكاميرا. الرجاء تمكين الوصول للمحاولة مرة أخرى.");
-        }
-    }
-
-    // بدء عملية التحقق من السيلفي
-    function startLivenessCheck() {
-        const inputValues = prompt("الرجاء إدخال القيمتين (user_id و transaction_id) مفصولتين بفاصلة:");
-        if (inputValues) {
-            const [userId, transactionId] = inputValues.split(',').map(v => v.trim());
-            if (userId && transactionId) {
+        function startLivenessCheck(user_id, transaction_id) {
+            // تأكد من أن OzLiveness جاهز قبل محاولة الفتح
+            if (typeof OzLiveness !== 'undefined') {
                 OzLiveness.open({
-                    lang: 'en',
+                    lang: 'ar',
                     meta: {
-                        'user_id': userId,
-                        'transaction_id': transactionId
+                        'user_id': user_id,
+                        'transaction_id': transaction_id
                     },
                     overlay_options: false,
-                    action: ['video_selfie_blank'],
+                    action: [
+                        'video_selfie_blank'
+                    ],
                     on_complete: function (result) {
                         if (result.status === 'success') {
-                            const eventId = result.event_session_id;
-                            alert("الصورة جيدة وتم قبولها. الكود هو: " + eventId);
-                            // إضافة أزرار النسخ بجانب الكود
-                            const copyBtn = document.createElement("button");
-                            copyBtn.textContent = "نسخ الكود";
-                            copyBtn.onclick = function() {
-                                navigator.clipboard.writeText(eventId).then(() => {
-                                    alert("تم نسخ الكود بنجاح.");
-                                });
-                            };
-                            document.body.appendChild(copyBtn);
+                            alert("الصورة جيدة وتم قبولها.");
+                            $("#LivenessId").val(result.event_session_id);
+                            ShowLoader();
+                            $("#formLiveness").submit();
                         } else {
                             alert("الصورة غير صالحة. الرجاء المحاولة مرة أخرى.");
-                            setTimeout(startLivenessCheck, 3000); // إعادة المحاولة بعد 3 ثوانٍ
+                            setTimeout(function() {
+                                alert("سوف نعيد المحاولة الآن...");
+                                startLivenessCheck(user_id, transaction_id);
+                            }, 3000);
                         }
                     }
                 });
             } else {
-                alert("الرجاء إدخال القيمتين بشكل صحيح.");
+                alert("OzLiveness غير متاح. تأكد من أن السكريبت محمل بشكل صحيح.");
             }
         }
-    }
-
-    // استدعاء عملية طلب الإذن عند تحميل الصفحة
-    window.addEventListener('load', function () {
-        requestCameraAccess();
-    });
-</script>
-
-<!-- زر بدء التحقق -->
-<button id="startLivenessBtn" onclick="startLivenessCheck()" disabled>بدء التحقق من السيلفي</button>
+    })();
+};
